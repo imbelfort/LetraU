@@ -2,7 +2,7 @@
 using System.IO;
 using Newtonsoft.Json;
 
-namespace LetraT
+namespace LetraU
 {
     public class Serializador
     {

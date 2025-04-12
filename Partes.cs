@@ -4,7 +4,7 @@ using OpenTK.Graphics;
 using System.Collections.Generic;
 //using System.Runtime.Serialization;
 
-namespace LetraT
+namespace LetraU
 {
     public class Partes
     {

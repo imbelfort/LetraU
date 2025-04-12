@@ -2,7 +2,7 @@
 using OpenTK;
 using System.Collections.Generic;
 
-namespace LetraT
+namespace LetraU
 {
     public class Escenario
     {

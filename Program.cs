@@ -1,4 +1,4 @@
-﻿namespace LetraT
+﻿namespace LetraU
 {
     class Program
     {
