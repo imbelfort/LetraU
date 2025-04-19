@@ -9,7 +9,7 @@ namespace LetraU
     public class Game : GameWindow
     {
         private Escenario escenario;
-        private float anguloRotacion = 0.0f;
+        //private float anguloRotacion = 0.0f;
         public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Diseño Letra U - 3D")
         {
             // Inicializar directamente la letra U en lugar de cargar desde archivo
@@ -34,15 +34,15 @@ namespace LetraU
 
             // transformaciones
             letraU.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
-            letraU.Escalar(0.7f);
-            letraU.Rotar(70, 45, 10);
+            letraU.Escalar(0.5f);
+            letraU.Rotar(0, 0, 30);
 
-            letraU2.Trasladar(new Vector3(1.5f, 0.0f, 0.0f));
+            letraU2.Trasladar(new Vector3(1.7f, 0.0f, 0.0f));
             letraU2.Escalar(0.8f);
 
-            letraU3.Trasladar(new Vector3(0.3f, 0.2f, 0.0f));
-            letraU3.Escalar(0.5f);
-            letraU3.Rotar(70, 20, 10);
+            letraU3.Trasladar(new Vector3(0f, 0.1f, 0.0f));
+            letraU3.Escalar(0.9f);
+            letraU3.Rotar(50, 0, 0);
 
         }
 
@@ -234,15 +234,6 @@ namespace LetraU
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
-
-            // Actualizar ángulo de rotación para animación
-            anguloRotacion += 0.5f * (float)e.Time;
-
-            Objeto letraU2 = escenario.getObjeto("letraU2");
-            if (letraU2 != null)
-            {
-                letraU2.Rotar(0, anguloRotacion, 0);
-            }
 
             // Manejar entrada del teclado para controlar transformaciones
             var keyboard = Keyboard.GetState();
