@@ -9,6 +9,8 @@ namespace LetraU
     public class Game : GameWindow
     {
         private Escenario escenario;
+        private float anguloRotacion = 0.0f;
+
 
         public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Diseño Letra U - 3D")
         {
@@ -20,8 +22,33 @@ namespace LetraU
 
             // Cargar desde archivo después de serializar una vez:
             escenario = Serializador.DeserializarObjeto<Escenario>("escenarioU.json");
+
+            // Inicializar Objetos
+            Objeto letraU = escenario.getObjeto("letraU");
+            Objeto letraU2 = letraU.clonar();
+            Objeto letraU3 = letraU.clonar();
+
+            letraU2.centro = new Punto(8.0f, 0.0f, 0.0f);
+            escenario.addObjeto("letraU2", letraU2);
+
+            letraU3.centro = new Punto(8.0f, 0.0f, 0.0f);
+            escenario.addObjeto("letraU3", letraU3);
+
+            // Aplicar transformaciones a la letra U original
+            letraU.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
+            letraU.Escalar(0.7f);
+            letraU.Rotar(70, 45, 10);
+
+            letraU2.Trasladar(new Vector3(1.5f, 0.0f, 0.0f));
+            letraU2.Escalar(0.8f);
+
+            letraU3.Trasladar(new Vector3(0.5f, 0.4f, 0.0f));
+            letraU3.Escalar(0.5f);
+
+
         }
 
+        //Metodo que contiene todos los vertices de la Letra U
         /*public static Escenario InicializarLetraU()
         {
             // Crear un nuevo escenario centrado en el origen
@@ -183,7 +210,7 @@ namespace LetraU
             escenario.addObjeto("letraU", letraU);
 
             return escenario;
-        }*/
+        } */
 
         protected override void OnLoad(EventArgs e)
         {
@@ -209,6 +236,47 @@ namespace LetraU
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
+
+            // Actualizar ángulo de rotación para animación
+            anguloRotacion += 0.5f * (float)e.Time;
+
+            // Ejemplo: animar uno de los objetos
+            Objeto letraU2 = escenario.getObjeto("letraU2");
+            if (letraU2 != null)
+            {
+                letraU2.Rotar(0, anguloRotacion, 0);
+            }
+
+            // Manejar entrada del teclado para controlar transformaciones
+            var keyboard = Keyboard.GetState();
+
+            // Ejemplo: Mover la primera letra con teclas de flecha
+            Objeto letraU = escenario.getObjeto("letraU");
+            if (letraU != null)
+            {
+                Vector3 posicionActual = letraU.Posicion;
+
+                if (keyboard[Key.Up])
+                    letraU.Trasladar(posicionActual.X, posicionActual.Y + 0.01f, posicionActual.Z);
+                if (keyboard[Key.Down])
+                    letraU.Trasladar(posicionActual.X, posicionActual.Y - 0.01f, posicionActual.Z);
+                if (keyboard[Key.Left])
+                    letraU.Trasladar(posicionActual.X - 0.01f, posicionActual.Y, posicionActual.Z);
+                if (keyboard[Key.Right])
+                    letraU.Trasladar(posicionActual.X + 0.01f, posicionActual.Y, posicionActual.Z);
+
+                // Escalar con teclas más/menos
+                if (keyboard[Key.Plus] || keyboard[Key.KeypadPlus])
+                {
+                    Vector3 escalaActual = letraU.Escala;
+                    letraU.Escalar(escalaActual.X + 0.01f, escalaActual.Y + 0.01f, escalaActual.Z + 0.01f);
+                }
+                if (keyboard[Key.Minus] || keyboard[Key.KeypadMinus])
+                {
+                    Vector3 escalaActual = letraU.Escala;
+                    letraU.Escalar(escalaActual.X - 0.01f, escalaActual.Y - 0.01f, escalaActual.Z - 0.01f);
+                }
+            }
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -227,5 +295,7 @@ namespace LetraU
 
             SwapBuffers();
         }
+
+
     }
 }

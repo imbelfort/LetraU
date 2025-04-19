@@ -55,5 +55,12 @@ namespace LetraU
                 poligono.Dibujar(centro);
             }
         }
+        public void dibujarPoligono(Vector3 centro, Vector3 posicion, Vector3 rotacion, Vector3 escala)
+        {
+            foreach (Poligono poligono in listaDePoligonos.Values)
+            {
+                poligono.Dibujar(centro, posicion, rotacion, escala);
+            }
+        }
     }
 }

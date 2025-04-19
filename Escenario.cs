@@ -15,6 +15,7 @@ namespace LetraU
             this.centro = centro;
         }
 
+
         public void addObjeto(String nombre, Objeto nuevoObjeto)
         {
             this.listaDeObjetos.Add(nombre, nuevoObjeto);
@@ -42,5 +43,7 @@ namespace LetraU
                 objetoActual.dibujarParte(centro);
             }
         }
+
+
     }
 }

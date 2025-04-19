@@ -8,8 +8,6 @@ namespace LetraU
 {
     public class Poligono
     {
-        float rotarEjeY;
-
         public List<Punto> Vertices;
         public Color4 color;
         public Punto centro;
@@ -19,7 +17,6 @@ namespace LetraU
             this.Vertices = new List<Punto>();
             this.color = color;
             this.centro = new Punto(0, 0, 0);
-            this.rotarEjeY = 0.02f;
         }
 
         public void addVertice(float x, float y, float z)
@@ -37,6 +34,7 @@ namespace LetraU
             this.centro = centro;
         }
 
+        // Método de dibujo original
         public void Dibujar(Vector3 centro)
         {
             GL.PushMatrix();
@@ -44,8 +42,6 @@ namespace LetraU
 
             GL.Begin(PrimitiveType.Polygon);
             GL.Color4(color);
-
-            Rotar(rotarEjeY, "y");
 
             foreach (var vertice in Vertices)
             {
@@ -56,7 +52,40 @@ namespace LetraU
             GL.PopMatrix();
         }
 
+        // Nuevo método de dibujo con transformaciones
+        public void Dibujar(Vector3 centro, Vector3 posicion, Vector3 rotacion, Vector3 escala)
+        {
+            GL.PushMatrix();
 
+            // Primero aplicamos la traslación al centro de la escena
+            GL.Translate(new Vector3(centro.X, centro.Y, centro.Z));
+
+            // Luego aplicamos la traslación del objeto
+            GL.Translate(posicion);
+
+            // Aplicamos las rotaciones
+            GL.Rotate(rotacion.X, 1.0f, 0.0f, 0.0f); // Rotación en X
+            GL.Rotate(rotacion.Y, 0.0f, 1.0f, 0.0f); // Rotación en Y
+            GL.Rotate(rotacion.Z, 0.0f, 0.0f, 1.0f); // Rotación en Z
+
+            // Aplicamos la escala
+            GL.Scale(escala);
+
+            // Dibujamos el polígono
+            GL.Begin(PrimitiveType.Polygon);
+            GL.Color4(color);
+
+            foreach (var vertice in Vertices)
+            {
+                GL.Vertex3(new Vector3(vertice.x, vertice.y, vertice.z));
+            }
+
+            GL.End();
+
+            GL.PopMatrix();
+        }
+
+        // Método auxiliar para rotación en el eje Y
         public void Rotar(float angle, String eje)
         {
             if (eje == "y" || eje == "Y")
@@ -76,6 +105,5 @@ namespace LetraU
             float z = (vertex.x - centro.X) * sinA + (vertex.z - centro.Z) * cosA + centro.Z;
             return new Punto(x, vertex.y, z);
         }
-
     }
 }
