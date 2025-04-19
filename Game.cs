@@ -10,14 +10,12 @@ namespace LetraU
     {
         private Escenario escenario;
         private float anguloRotacion = 0.0f;
-
-
         public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Diseño Letra U - 3D")
         {
             // Inicializar directamente la letra U en lugar de cargar desde archivo
             //this.escenario = InicializarLetraU();
 
-            //Opcional: Guardar el escenario para futuras ejecuciones
+            //Guardar el escenario para futuras ejecuciones
             //Serializador.SerializarObjeto<Escenario>(escenario, "escenarioU.json");
 
             // Cargar desde archivo después de serializar una vez:
@@ -34,7 +32,7 @@ namespace LetraU
             letraU3.centro = new Punto(8.0f, 0.0f, 0.0f);
             escenario.addObjeto("letraU3", letraU3);
 
-            // Aplicar transformaciones a la letra U original
+            // transformaciones
             letraU.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
             letraU.Escalar(0.7f);
             letraU.Rotar(70, 45, 10);
@@ -42,9 +40,9 @@ namespace LetraU
             letraU2.Trasladar(new Vector3(1.5f, 0.0f, 0.0f));
             letraU2.Escalar(0.8f);
 
-            letraU3.Trasladar(new Vector3(0.5f, 0.4f, 0.0f));
+            letraU3.Trasladar(new Vector3(0.3f, 0.2f, 0.0f));
             letraU3.Escalar(0.5f);
-
+            letraU3.Rotar(70, 20, 10);
 
         }
 
@@ -240,7 +238,6 @@ namespace LetraU
             // Actualizar ángulo de rotación para animación
             anguloRotacion += 0.5f * (float)e.Time;
 
-            // Ejemplo: animar uno de los objetos
             Objeto letraU2 = escenario.getObjeto("letraU2");
             if (letraU2 != null)
             {
@@ -250,7 +247,7 @@ namespace LetraU
             // Manejar entrada del teclado para controlar transformaciones
             var keyboard = Keyboard.GetState();
 
-            // Ejemplo: Mover la primera letra con teclas de flecha
+            // Mover la primera letra con teclas de flecha
             Objeto letraU = escenario.getObjeto("letraU");
             if (letraU != null)
             {
@@ -265,7 +262,7 @@ namespace LetraU
                 if (keyboard[Key.Right])
                     letraU.Trasladar(posicionActual.X + 0.01f, posicionActual.Y, posicionActual.Z);
 
-                // Escalar con teclas más/menos
+                // Escalar con teclas más y menos
                 if (keyboard[Key.Plus] || keyboard[Key.KeypadPlus])
                 {
                     Vector3 escalaActual = letraU.Escala;
