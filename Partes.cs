@@ -6,16 +6,16 @@ using System.Collections.Generic;
 
 namespace LetraU
 {
-    public class Partes
+    public class Partes : Transformaciones
     {
         public Dictionary<String, Poligono> listaDePoligonos;
         public Color4 color;
         public Punto centro;
-
         public Partes()
         {
             listaDePoligonos = new Dictionary<string, Poligono>();
             this.color = new Color4(0, 0, 0, 0);
+
         }
 
         public void add(String nombre, Poligono poligono)
@@ -55,11 +55,19 @@ namespace LetraU
                 poligono.Dibujar(centro);
             }
         }
-        public void dibujarPoligono(Vector3 centro, Vector3 posicion, Vector3 rotacion, Vector3 escala)
+        public void dibujarPoligono(Vector3 centro, Vector3 objetoPosicion, Vector3 objetoRotacion, Vector3 objetoEscala)
         {
             foreach (Poligono poligono in listaDePoligonos.Values)
             {
-                poligono.Dibujar(centro, posicion, rotacion, escala);
+                // Combinamos las transformaciones del objeto con las de la parte
+                Vector3 posicionFinal = objetoPosicion + this.Posicion;
+                Vector3 rotacionFinal = objetoRotacion + this.Rotacion;
+                Vector3 escalaFinal = new Vector3(
+                    objetoEscala.X * this.Escala.X,
+                    objetoEscala.Y * this.Escala.Y,
+                    objetoEscala.Z * this.Escala.Z);
+
+                poligono.Dibujar(centro, posicionFinal, rotacionFinal, escalaFinal);
             }
         }
     }

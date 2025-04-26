@@ -34,7 +34,7 @@ namespace LetraU
             this.centro = centro;
         }
 
-        // Método de dibujo original
+        // Método de dibujo
         public void Dibujar(Vector3 centro)
         {
             GL.PushMatrix();

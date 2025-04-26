@@ -10,6 +10,28 @@ namespace LetraU
     {
         private Escenario escenario;
         //private float anguloRotacion = 0.0f;
+
+        // Enumeraciones para los modos de edición
+        enum ModoEdicion
+        {
+            Escenario,
+            Objeto,
+            Parte
+        }
+        enum TipoTransformacion
+        {
+            Traslacion,
+            Rotacion,
+            Escala
+        }
+        // Variables de control
+        private ModoEdicion modoActual = ModoEdicion.Objeto;
+        private TipoTransformacion transformacionActual = TipoTransformacion.Traslacion;
+        private string objetoSeleccionado = "letraU";
+        private string parteSeleccionada = "barraIzquierda";
+        private float velocidadTransformacion = 0.01f;
+        private float velocidadRotacion = 1.0f;
+        private float velocidadEscala = 0.01f;
         public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Diseño Letra U - 3D")
         {
             // Inicializar directamente la letra U en lugar de cargar desde archivo
@@ -32,15 +54,19 @@ namespace LetraU
             letraU3.centro = new Punto(8.0f, 0.0f, 0.0f);
             escenario.addObjeto("letraU3", letraU3);
 
+            //letraU2.setColor(new Color4(0.0f, 0.0f, 1.0f, 1.0f)); // Azul
+            //letraU3.setColor(new Color4(0.5f, 0.0f, 1.0f, 1.0f)); //Violeta
+
             // transformaciones
             letraU.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
             letraU.Escalar(0.5f);
             letraU.Rotar(0, 0, 30);
 
-            letraU2.Trasladar(new Vector3(1.7f, 0.0f, 0.0f));
+            letraU2.Trasladar(new Vector3(0f, 0.0f, 0.0f));
             letraU2.Escalar(0.8f);
+            
 
-            letraU3.Trasladar(new Vector3(0f, 0.1f, 0.0f));
+            letraU3.Trasladar(new Vector3(1.7f, 0.0f, 0.0f));
             letraU3.Escalar(0.9f);
             letraU3.Rotar(50, 0, 0);
 
@@ -235,35 +261,212 @@ namespace LetraU
         {
             base.OnUpdateFrame(e);
 
-            // Manejar entrada del teclado para controlar transformaciones
+            // Manejar entrada del teclado
             var keyboard = Keyboard.GetState();
 
-            // Mover la primera letra con teclas de flecha
-            Objeto letraU = escenario.getObjeto("letraU");
-            if (letraU != null)
+            // Cambiar el modo de edición
+            if (keyboard[Key.Number1])
+                modoActual = ModoEdicion.Escenario;
+            else if (keyboard[Key.Number2])
+                modoActual = ModoEdicion.Objeto;
+            else if (keyboard[Key.Number3])
+                modoActual = ModoEdicion.Parte;
+
+            // Cambiar tipo de transformación
+            if (keyboard[Key.T])
+                transformacionActual = TipoTransformacion.Traslacion;
+            else if (keyboard[Key.R])
+                transformacionActual = TipoTransformacion.Rotacion;
+            else if (keyboard[Key.E])
+                transformacionActual = TipoTransformacion.Escala;
+
+            // Seleccionar objeto
+            if (keyboard[Key.F1])
+                objetoSeleccionado = "letraU";
+            else if (keyboard[Key.F2])
+                objetoSeleccionado = "letraU2";
+            else if (keyboard[Key.F3])
+                objetoSeleccionado = "letraU3";
+
+            // Seleccionar parte (si el modo es Parte)
+            if (keyboard[Key.F4])
+                parteSeleccionada = "barraIzquierda";
+            else if (keyboard[Key.F5])
+                parteSeleccionada = "barraDerecha";
+            else if (keyboard[Key.F6])
+                parteSeleccionada = "parteInferior";
+
+            // Aplicar transformaciones según el modo y tipo seleccionados
+            switch (modoActual)
             {
-                Vector3 posicionActual = letraU.Posicion;
+                case ModoEdicion.Escenario:
+                    AplicarTransformacionEscenario(keyboard);
+                    break;
+                case ModoEdicion.Objeto:
+                    AplicarTransformacionObjeto(keyboard);
+                    break;
+                case ModoEdicion.Parte:
+                    AplicarTransformacionParte(keyboard);
+                    break;
+            }
+        }
 
-                if (keyboard[Key.Up])
-                    letraU.Trasladar(posicionActual.X, posicionActual.Y + 0.01f, posicionActual.Z);
-                if (keyboard[Key.Down])
-                    letraU.Trasladar(posicionActual.X, posicionActual.Y - 0.01f, posicionActual.Z);
-                if (keyboard[Key.Left])
-                    letraU.Trasladar(posicionActual.X - 0.01f, posicionActual.Y, posicionActual.Z);
-                if (keyboard[Key.Right])
-                    letraU.Trasladar(posicionActual.X + 0.01f, posicionActual.Y, posicionActual.Z);
+        private void AplicarTransformacionEscenario(KeyboardState keyboard)
+        {
+            switch (transformacionActual)
+            {
+                case TipoTransformacion.Traslacion:
+                    Vector3 posicionActual = escenario.Posicion;
+                    if (keyboard[Key.Up])
+                        escenario.Trasladar(posicionActual.X, posicionActual.Y + velocidadTransformacion, posicionActual.Z);
+                    if (keyboard[Key.Down])
+                        escenario.Trasladar(posicionActual.X, posicionActual.Y - velocidadTransformacion, posicionActual.Z);
+                    if (keyboard[Key.Left])
+                        escenario.Trasladar(posicionActual.X - velocidadTransformacion, posicionActual.Y, posicionActual.Z);
+                    if (keyboard[Key.Right])
+                        escenario.Trasladar(posicionActual.X + velocidadTransformacion, posicionActual.Y, posicionActual.Z);
+                    if (keyboard[Key.PageUp])
+                        escenario.Trasladar(posicionActual.X, posicionActual.Y, posicionActual.Z + velocidadTransformacion);
+                    if (keyboard[Key.PageDown])
+                        escenario.Trasladar(posicionActual.X, posicionActual.Y, posicionActual.Z - velocidadTransformacion);
+                    break;
+                case TipoTransformacion.Rotacion:
+                    Vector3 rotacionActual = escenario.Rotacion;
+                    if (keyboard[Key.Up])
+                        escenario.Rotar(rotacionActual.X + velocidadRotacion, rotacionActual.Y, rotacionActual.Z);
+                    if (keyboard[Key.Down])
+                        escenario.Rotar(rotacionActual.X - velocidadRotacion, rotacionActual.Y, rotacionActual.Z);
+                    if (keyboard[Key.Left])
+                        escenario.Rotar(rotacionActual.X, rotacionActual.Y + velocidadRotacion, rotacionActual.Z);
+                    if (keyboard[Key.Right])
+                        escenario.Rotar(rotacionActual.X, rotacionActual.Y - velocidadRotacion, rotacionActual.Z);
+                    if (keyboard[Key.PageUp])
+                        escenario.Rotar(rotacionActual.X, rotacionActual.Y, rotacionActual.Z + velocidadRotacion);
+                    if (keyboard[Key.PageDown])
+                        escenario.Rotar(rotacionActual.X, rotacionActual.Y, rotacionActual.Z - velocidadRotacion);
+                    break;
+                case TipoTransformacion.Escala:
+                    Vector3 escalaActual = escenario.Escala;
+                    if (keyboard[Key.Plus] || keyboard[Key.KeypadPlus])
+                        escenario.Escalar(escalaActual.X + velocidadEscala, escalaActual.Y + velocidadEscala, escalaActual.Z + velocidadEscala);
+                    if (keyboard[Key.Minus] || keyboard[Key.KeypadMinus])
+                        escenario.Escalar(escalaActual.X - velocidadEscala, escalaActual.Y - velocidadEscala, escalaActual.Z - velocidadEscala);
+                    if (keyboard[Key.X])
+                        escenario.Escalar(escalaActual.X + velocidadEscala, escalaActual.Y, escalaActual.Z);
+                    if (keyboard[Key.Y])
+                        escenario.Escalar(escalaActual.X, escalaActual.Y + velocidadEscala, escalaActual.Z);
+                    if (keyboard[Key.Z])
+                        escenario.Escalar(escalaActual.X, escalaActual.Y, escalaActual.Z + velocidadEscala);
+                    break;
+            }
+        }
 
-                // Escalar con teclas más y menos
-                if (keyboard[Key.Plus] || keyboard[Key.KeypadPlus])
-                {
-                    Vector3 escalaActual = letraU.Escala;
-                    letraU.Escalar(escalaActual.X + 0.01f, escalaActual.Y + 0.01f, escalaActual.Z + 0.01f);
-                }
-                if (keyboard[Key.Minus] || keyboard[Key.KeypadMinus])
-                {
-                    Vector3 escalaActual = letraU.Escala;
-                    letraU.Escalar(escalaActual.X - 0.01f, escalaActual.Y - 0.01f, escalaActual.Z - 0.01f);
-                }
+        private void AplicarTransformacionObjeto(KeyboardState keyboard)
+        {
+            Objeto objetoActual = escenario.getObjeto(objetoSeleccionado);
+            if (objetoActual == null) return;
+
+            switch (transformacionActual)
+            {
+                case TipoTransformacion.Traslacion:
+                    Vector3 posicionActual = objetoActual.Posicion;
+                    if (keyboard[Key.Up])
+                        objetoActual.Trasladar(posicionActual.X, posicionActual.Y + velocidadTransformacion, posicionActual.Z);
+                    if (keyboard[Key.Down])
+                        objetoActual.Trasladar(posicionActual.X, posicionActual.Y - velocidadTransformacion, posicionActual.Z);
+                    if (keyboard[Key.Left])
+                        objetoActual.Trasladar(posicionActual.X - velocidadTransformacion, posicionActual.Y, posicionActual.Z);
+                    if (keyboard[Key.Right])
+                        objetoActual.Trasladar(posicionActual.X + velocidadTransformacion, posicionActual.Y, posicionActual.Z);
+                    if (keyboard[Key.PageUp])
+                        objetoActual.Trasladar(posicionActual.X, posicionActual.Y, posicionActual.Z + velocidadTransformacion);
+                    if (keyboard[Key.PageDown])
+                        objetoActual.Trasladar(posicionActual.X, posicionActual.Y, posicionActual.Z - velocidadTransformacion);
+                    break;
+                case TipoTransformacion.Rotacion:
+                    Vector3 rotacionActual = objetoActual.Rotacion;
+                    if (keyboard[Key.Up])
+                        objetoActual.Rotar(rotacionActual.X + velocidadRotacion, rotacionActual.Y, rotacionActual.Z);
+                    if (keyboard[Key.Down])
+                        objetoActual.Rotar(rotacionActual.X - velocidadRotacion, rotacionActual.Y, rotacionActual.Z);
+                    if (keyboard[Key.Left])
+                        objetoActual.Rotar(rotacionActual.X, rotacionActual.Y + velocidadRotacion, rotacionActual.Z);
+                    if (keyboard[Key.Right])
+                        objetoActual.Rotar(rotacionActual.X, rotacionActual.Y - velocidadRotacion, rotacionActual.Z);
+                    if (keyboard[Key.PageUp])
+                        objetoActual.Rotar(rotacionActual.X, rotacionActual.Y, rotacionActual.Z + velocidadRotacion);
+                    if (keyboard[Key.PageDown])
+                        objetoActual.Rotar(rotacionActual.X, rotacionActual.Y, rotacionActual.Z - velocidadRotacion);
+                    break;
+                case TipoTransformacion.Escala:
+                    Vector3 escalaActual = objetoActual.Escala;
+                    if (keyboard[Key.Plus] || keyboard[Key.KeypadPlus])
+                        objetoActual.Escalar(escalaActual.X + velocidadEscala, escalaActual.Y + velocidadEscala, escalaActual.Z + velocidadEscala);
+                    if (keyboard[Key.Minus] || keyboard[Key.KeypadMinus])
+                        objetoActual.Escalar(escalaActual.X - velocidadEscala, escalaActual.Y - velocidadEscala, escalaActual.Z - velocidadEscala);
+                    if (keyboard[Key.X])
+                        objetoActual.Escalar(escalaActual.X + velocidadEscala, escalaActual.Y, escalaActual.Z);
+                    if (keyboard[Key.Y])
+                        objetoActual.Escalar(escalaActual.X, escalaActual.Y + velocidadEscala, escalaActual.Z);
+                    if (keyboard[Key.Z])
+                        objetoActual.Escalar(escalaActual.X, escalaActual.Y, escalaActual.Z + velocidadEscala);
+                    break;
+            }
+        }
+
+        private void AplicarTransformacionParte(KeyboardState keyboard)
+        {
+            Objeto objetoActual = escenario.getObjeto(objetoSeleccionado);
+            if (objetoActual == null) return;
+
+            Partes parteActual = objetoActual.getParte(parteSeleccionada);
+            if (parteActual == null) return;
+
+            switch (transformacionActual)
+            {
+                case TipoTransformacion.Traslacion:
+                    Vector3 posicionActual = parteActual.Posicion;
+                    if (keyboard[Key.Up])
+                        parteActual.Trasladar(posicionActual.X, posicionActual.Y + velocidadTransformacion, posicionActual.Z);
+                    if (keyboard[Key.Down])
+                        parteActual.Trasladar(posicionActual.X, posicionActual.Y - velocidadTransformacion, posicionActual.Z);
+                    if (keyboard[Key.Left])
+                        parteActual.Trasladar(posicionActual.X - velocidadTransformacion, posicionActual.Y, posicionActual.Z);
+                    if (keyboard[Key.Right])
+                        parteActual.Trasladar(posicionActual.X + velocidadTransformacion, posicionActual.Y, posicionActual.Z);
+                    if (keyboard[Key.PageUp])
+                        parteActual.Trasladar(posicionActual.X, posicionActual.Y, posicionActual.Z + velocidadTransformacion);
+                    if (keyboard[Key.PageDown])
+                        parteActual.Trasladar(posicionActual.X, posicionActual.Y, posicionActual.Z - velocidadTransformacion);
+                    break;
+                case TipoTransformacion.Rotacion:
+                    Vector3 rotacionActual = parteActual.Rotacion;
+                    if (keyboard[Key.Up])
+                        parteActual.Rotar(rotacionActual.X + velocidadRotacion, rotacionActual.Y, rotacionActual.Z);
+                    if (keyboard[Key.Down])
+                        parteActual.Rotar(rotacionActual.X - velocidadRotacion, rotacionActual.Y, rotacionActual.Z);
+                    if (keyboard[Key.Left])
+                        parteActual.Rotar(rotacionActual.X, rotacionActual.Y + velocidadRotacion, rotacionActual.Z);
+                    if (keyboard[Key.Right])
+                        parteActual.Rotar(rotacionActual.X, rotacionActual.Y - velocidadRotacion, rotacionActual.Z);
+                    if (keyboard[Key.PageUp])
+                        parteActual.Rotar(rotacionActual.X, rotacionActual.Y, rotacionActual.Z + velocidadRotacion);
+                    if (keyboard[Key.PageDown])
+                        parteActual.Rotar(rotacionActual.X, rotacionActual.Y, rotacionActual.Z - velocidadRotacion);
+                    break;
+                case TipoTransformacion.Escala:
+                    Vector3 escalaActual = parteActual.Escala;
+                    if (keyboard[Key.Plus] || keyboard[Key.KeypadPlus])
+                        parteActual.Escalar(escalaActual.X + velocidadEscala, escalaActual.Y + velocidadEscala, escalaActual.Z + velocidadEscala);
+                    if (keyboard[Key.Minus] || keyboard[Key.KeypadMinus])
+                        parteActual.Escalar(escalaActual.X - velocidadEscala, escalaActual.Y - velocidadEscala, escalaActual.Z - velocidadEscala);
+                    if (keyboard[Key.X])
+                        parteActual.Escalar(escalaActual.X + velocidadEscala, escalaActual.Y, escalaActual.Z);
+                    if (keyboard[Key.Y])
+                        parteActual.Escalar(escalaActual.X, escalaActual.Y + velocidadEscala, escalaActual.Z);
+                    if (keyboard[Key.Z])
+                        parteActual.Escalar(escalaActual.X, escalaActual.Y, escalaActual.Z + velocidadEscala);
+                    break;
             }
         }
 
@@ -279,11 +482,18 @@ namespace LetraU
                 Vector3.UnitY); // Vector arriba
             GL.LoadMatrix(ref modelview);
 
+            // Renderizar estado actual
+            string modoText = $"Modo: {modoActual}, Transformación: {transformacionActual}, Objeto: {objetoSeleccionado}";
+            if (modoActual == ModoEdicion.Parte)
+                modoText += $", Parte: {parteSeleccionada}";
+
+            // Sería ideal mostrar este texto en pantalla, pero eso requeriría una biblioteca de texto
+            Console.WriteLine(modoText);
+
+            // Dibujar escenario con las transformaciones aplicadas
             escenario.dibujar(new Vector3(0, 0, 0));
 
             SwapBuffers();
         }
-
-
     }
 }

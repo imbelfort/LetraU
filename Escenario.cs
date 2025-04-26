@@ -4,15 +4,16 @@ using System.Collections.Generic;
 
 namespace LetraU
 {
-    public class Escenario
+    public class Escenario : Transformaciones
     {
         public Dictionary<String, Objeto> listaDeObjetos;
         protected Vector3 centro;
-
+       
         public Escenario(Vector3 centro)
         {
             this.listaDeObjetos = new Dictionary<String, Objeto>();
             this.centro = centro;
+
         }
 
 
@@ -40,10 +41,10 @@ namespace LetraU
         {
             foreach (Objeto objetoActual in this.listaDeObjetos.Values)
             {
-                objetoActual.dibujarParte(centro);
+                //objetoActual.dibujarParte(centro);
+                objetoActual.dibujarParte(centro, this.Posicion, this.Rotacion, this.Escala);
             }
         }
-
 
     }
 }

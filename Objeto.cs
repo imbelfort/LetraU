@@ -5,16 +5,11 @@ using System.Collections.Generic;
 
 namespace LetraU
 {
-    public class Objeto
+    public class Objeto : Transformaciones
     {
         public Dictionary<String, Partes> listaDePartes;
         public Color4 color;
         public Punto centro;
-
-        // Propiedades de transformación
-        public Vector3 Posicion { get; private set; }
-        public Vector3 Rotacion { get; private set; }
-        public Vector3 Escala { get; private set; }
 
         public Objeto()
         {
@@ -22,9 +17,6 @@ namespace LetraU
             this.color = new Color4(0, 0, 0, 0);
             this.centro = new Punto(0, 0, 0);
 
-            this.Posicion = new Vector3(0, 0, 0);
-            this.Rotacion = new Vector3(0, 0, 0);
-            this.Escala = new Vector3(1, 1, 1);
         }
 
         public void addParte(String nombre, Partes nuevaParte)
@@ -41,25 +33,22 @@ namespace LetraU
         {
             return this.listaDePartes[nombre];
         }
-
-        /* public void dibujarParte(Vector3 centro)
-         {
-             foreach (Partes partes in listaDePartes.Values)
-             {
-                 partes.dibujarPoligono(centro);
-             }
-         }*/
-
-        public void dibujarParte(Vector3 centro)
+        public void dibujarParte(Vector3 centro, Vector3 escenarioPosicion, Vector3 escenarioRotacion, Vector3 escenarioEscala)
         {
             foreach (Partes partes in listaDePartes.Values)
             {
-                // Pasamos las transformaciones del objeto a cada parte
-                partes.dibujarPoligono(centro, this.Posicion, this.Rotacion, this.Escala);
+                // Combinamos las transformaciones del escenario con las del objeto
+                Vector3 posicionFinal = escenarioPosicion + this.Posicion;
+                Vector3 rotacionFinal = escenarioRotacion + this.Rotacion;
+                Vector3 escalaFinal = new Vector3(
+                    escenarioEscala.X * this.Escala.X,
+                    escenarioEscala.Y * this.Escala.Y,
+                    escenarioEscala.Z * this.Escala.Z
+                );
+
+                partes.dibujarPoligono(centro, posicionFinal, rotacionFinal, escalaFinal);
             }
         }
-
-
 
         public void setColor(String parte, String poligono, Color4 color)
         {
@@ -75,50 +64,6 @@ namespace LetraU
                 parteActual.setCentro(centro);
             }
         }
-
-        // Métodos de transformación
-        public void Trasladar(float x, float y, float z)
-        {
-            this.Posicion = new Vector3(x, y, z);
-        }
-
-        public void Trasladar(Vector3 posicion)
-        {
-            this.Posicion = posicion;
-        }
-
-        public void Rotar(float x, float y, float z)
-        {
-            this.Rotacion = new Vector3(x, y, z);
-        }
-
-        public void Rotar(Vector3 rotacion)
-        {
-            this.Rotacion = rotacion;
-        }
-
-        public void Escalar(float x, float y, float z)
-        {
-            this.Escala = new Vector3(x, y, z);
-        }
-
-        public void Escalar(float escalaUniforme)
-        {
-            this.Escala = new Vector3(escalaUniforme, escalaUniforme, escalaUniforme);
-        }
-
-        public void Escalar(Vector3 escala)
-        {
-            this.Escala = escala;
-        }
-
-        public void ReiniciarTransformaciones()
-        {
-            this.Posicion = new Vector3(0, 0, 0);
-            this.Rotacion = new Vector3(0, 0, 0);
-            this.Escala = new Vector3(1, 1, 1);
-        }
-
         public Objeto clonar()
         {
             Objeto clon = new Objeto();
@@ -148,6 +93,17 @@ namespace LetraU
             }
 
             return clon;
+        }
+
+        public void setColor(Color4 Color)
+        {
+            foreach (var parte in listaDePartes)
+            {
+                foreach (var poligono in parte.Value.listaDePoligonos)
+                {
+                    setColor(parte.Key, poligono.Key, Color);
+                }
+            }
         }
     }
 }
