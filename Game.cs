@@ -9,8 +9,10 @@ namespace LetraU
     public class Game : GameWindow
     {
         private Escenario escenario;
-        //private float anguloRotacion = 0.0f;
-
+        private Libreto libreto;
+        private string autoNombre = "auto"; // Nombre del objeto auto en el escenario
+        private bool animacionActiva = false;
+       
         // Enumeraciones para los modos de edición
         enum ModoEdicion
         {
@@ -34,13 +36,14 @@ namespace LetraU
         private float velocidadEscala = 0.01f;
         public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Diseño Letra U - 3D")
         {
-            // Inicializar directamente la letra U en lugar de cargar desde archivo
+            // Inicializar directamente la letra U en lugar de cargar desde JSON
             //this.escenario = InicializarLetraU();
 
             //Guardar el escenario para futuras ejecuciones
             //Serializador.SerializarObjeto<Escenario>(escenario, "escenarioU.json");
 
             // Cargar desde archivo después de serializar una vez:
+            libreto = Libreto.CrearLibretoAuto(autoNombre);
             escenario = Serializador.DeserializarObjeto<Escenario>("escenarioU.json");
 
             // Inicializar Objetos
@@ -57,17 +60,16 @@ namespace LetraU
             //letraU2.setColor(new Color4(0.0f, 0.0f, 1.0f, 1.0f)); // Azul
             //letraU3.setColor(new Color4(0.5f, 0.0f, 1.0f, 1.0f)); //Violeta
 
-            // transformaciones
+            // Transformaciones
             letraU.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
-            letraU.Escalar(0.5f);
+            letraU.Escalar(0.7f);
             letraU.Rotar(0, 0, 30);
 
             letraU2.Trasladar(new Vector3(0f, 0.0f, 0.0f));
             letraU2.Escalar(0.8f);
-            
 
             letraU3.Trasladar(new Vector3(1.7f, 0.0f, 0.0f));
-            letraU3.Escalar(0.9f);
+            letraU3.Escalar(1f);
             letraU3.Rotar(50, 0, 0);
 
         }
@@ -309,6 +311,41 @@ namespace LetraU
                     AplicarTransformacionParte(keyboard);
                     break;
             }
+
+                var keyboard = Keyboard.GetState();
+
+                if (keyboard[Key.Space] && !animacionActiva)
+    {
+        libreto.Iniciar(true); // Iniciar animación en bucle
+        animacionActiva = true;
+    }
+    else if (keyboard[Key.Space] && animacionActiva)
+    {
+        libreto.Detener();
+        animacionActiva = false;
+    }
+    
+    if (keyboard[Key.P] && animacionActiva)
+    {
+        if (libreto.EstaReproduciendo())
+            libreto.Pausar();
+        else
+            libreto.Reanudar();
+    }
+    
+    if (keyboard[Key.R])
+    {
+        // Reiniciar animación
+        libreto.Detener();
+        animacionActiva = false;
+    }
+    
+    // Actualizar animación si está activa
+    if (animacionActiva)
+    {
+        libreto.Actualizar(escenario);
+    }
+
         }
 
         private void AplicarTransformacionEscenario(KeyboardState keyboard)
@@ -489,6 +526,12 @@ namespace LetraU
 
             // Sería ideal mostrar este texto en pantalla, pero eso requeriría una biblioteca de texto
             Console.WriteLine(modoText);
+
+                if (animacionActiva)
+                 {
+                      Console.WriteLine($"Animación: {libreto.ObtenerPorcentajeProgreso():F1}% completado");
+                      Console.WriteLine($"Tiempo: {libreto.ObtenerTiempoActual():F1}s / {libreto.ObtenerTiempoTotal():F1}s");
+                }
 
             // Dibujar escenario con las transformaciones aplicadas
             escenario.dibujar(new Vector3(0, 0, 0));
