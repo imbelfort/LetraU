@@ -70,5 +70,13 @@ namespace LetraU
                 poligono.Dibujar(centro, posicionFinal, rotacionFinal, escalaFinal);
             }
         }
+
+        public void desplazar(Vector3 vector)
+        {
+            foreach (Poligono poligono in listaDePoligonos.Values)
+            {
+              //  poligono.desplazamiento(vector);
+            }
+        }
     }
 }

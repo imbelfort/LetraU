@@ -105,5 +105,14 @@ namespace LetraU
                 }
             }
         }
+
+        public void desplazar(Vector3 vector)
+        {
+            foreach (Partes parte in listaDePartes.Values)
+            {
+                parte.desplazar(vector);
+            }
+        }
+
     }
 }
