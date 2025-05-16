@@ -1,7 +1,8 @@
 ﻿using System;
+using OpenTK;
+using OpenTK.Graphics;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK;
 
 namespace LetraU
 {

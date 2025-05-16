@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using System.Collections.Generic;
-//using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 
 namespace LetraU
 {
@@ -78,5 +78,22 @@ namespace LetraU
               //  poligono.desplazamiento(vector);
             }
         }
+
+        public void RotarAlrededorCentroMasa(float angle)
+        {
+            // Calcular el centro de masa
+
+            // Rotar cada vértice alrededor del centro de masa
+            foreach (var Poligono in listaDePoligonos.Values)
+            {
+                Poligono.RotarAlrededorCentroMasa(angle);
+            }
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            ((ISerializable)listaDePoligonos).GetObjectData(info, context);
+        }
+
     }
 }

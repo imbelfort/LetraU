@@ -34,6 +34,36 @@ namespace LetraU
             this.centro = centro;
         }
 
+        public void RotarAlrededorCentroMasa(float angle)
+        {
+            // Calcular el centro de masa
+            Punto centroMasa = CalcularCentroMasa();
+
+            // Rotar cada vértice alrededor del centro de masa
+            for (int i = 0; i < Vertices.Count; i++)
+            {
+                Vertices[i] = RotateVertex(Vertices[i], angle, centroMasa);
+            }
+        }
+
+        private Punto CalcularCentroMasa()
+        {
+            float sumaX = 0, sumaY = 0, sumaZ = 0;
+
+            foreach (var vertice in Vertices)
+            {
+                sumaX += vertice.x;
+                sumaY += vertice.y;
+                sumaZ += vertice.z;
+            }
+
+            float promedioX = sumaX / Vertices.Count;
+            float promedioY = sumaY / Vertices.Count;
+            float promedioZ = sumaZ / Vertices.Count;
+
+            return new Punto(promedioX, promedioY, promedioZ);
+        }
+
         // Método de dibujo
         public void Dibujar(Vector3 centro)
         {
@@ -105,5 +135,6 @@ namespace LetraU
             float z = (vertex.x - centro.X) * sinA + (vertex.z - centro.Z) * cosA + centro.Z;
             return new Punto(x, vertex.y, z);
         }
+
     }
 }
