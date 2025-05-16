@@ -46,6 +46,17 @@ namespace LetraU
             }
         }
 
+        private Punto RotateVertex(Punto vertex, float angle, Punto center)
+        {
+            float cosA = (float)Math.Cos(angle);
+            float sinA = (float)Math.Sin(angle);
+            float x = cosA * (vertex.x - center.x) + sinA * (vertex.y - center.y) + center.x;
+            float y = sinA * -(vertex.x - center.x) + cosA * (vertex.y - center.y) + center.y;
+            float z = vertex.z; // La rotación en el plano XY no afecta al eje Z
+
+            return new Punto(x, y, z);
+        }
+
         private Punto CalcularCentroMasa()
         {
             float sumaX = 0, sumaY = 0, sumaZ = 0;

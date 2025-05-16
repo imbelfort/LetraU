@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animacion.cs" />
+    <Compile Include="car_creator.cs" />
     <Compile Include="Escenario.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Objeto.cs" />
