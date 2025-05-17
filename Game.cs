@@ -65,6 +65,7 @@ namespace LetraU
             ConfigurarAnimacionAuto();
         }
 
+
         private void ConfigurarAnimacionAuto()
         {
             // Posicionar el auto sobre la carretera
@@ -79,8 +80,8 @@ namespace LetraU
                 // para asegurarnos de que empiece desde el origen
                 auto.Trasladar(new Vector3(0, 0, 0));
 
-                // Posición inicial del auto (ahora la aplicamos como primera traslación en la animación)
-                Vector3 posicionInicial = new Vector3(-3.0f, 0.3f, 0.0f);
+                // Posición inicial del auto
+                Vector3 posicionInicial = new Vector3(-3.0f, 0.4f, 0.0f);
 
                 // Limpiamos cualquier animación anterior
                 animacionAuto.Reiniciar();
@@ -90,19 +91,25 @@ namespace LetraU
                 animacionAuto.AgregarAccion(new AccionTraslacion(auto, posicionInicial, 0.01f));
 
                 // Primera trayectoria: Desde posición inicial hasta la curva
-                Vector3 posicionCurva = new Vector3(0.0f, 0.5f, 0.0f);
+                // Ajustamos la posición para que la curva sea más abierta (desplazando en Z positivo)
+                Vector3 posicionCurva = new Vector3(0.0f, 0.3f, -0.2f); // Más abierta (exterior) en Z
                 Vector3 movimiento1 = posicionCurva - posicionInicial;
-                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 2.0f));
+                // Aumentamos la duración para que sea más lenta (de 2.0f a 3.5f)
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 3.5f));
 
                 // Rotación en la curva de 45 grados en Y
-                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 1.0f));
+                // Hacemos la rotación más lenta también (de 1.0f a 2.0f)
+                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 2.0f));
 
                 // Segunda trayectoria: Desde la curva hasta el final
-                Vector3 posicionFinal = new Vector3(3.0f, 1.0f, -1.2f);
+                // Ajustamos el destino para que coincida con la nueva trayectoria más abierta
+                Vector3 posicionFinal = new Vector3(3.0f, 0.2f, -1.5f); // Ajustamos para la curva más abierta
                 Vector3 movimiento2 = posicionFinal - posicionCurva;
-                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 2.0f));
+                // Aumentamos la duración para que sea más lenta (de 2.0f a 3.5f)
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 3.5f));
 
                 // Configurar animación de rotación para las ruedas
+                // Ajustamos también la velocidad de rotación de las ruedas
                 ConfigurarAnimacionRuedas(auto);
 
                 animacionIniciada = true;
