@@ -29,23 +29,29 @@ namespace LetraU
         {
             tiempoTranscurrido += deltaTime;
 
-            // Si la animación ha terminado, puedes reiniciarla o hacer algo más.
-            if (tiempoTranscurrido >= tiempoTotal)
-            {
-                Reiniciar();
-                return;
-            }
+            // Crear una copia temporal para evitar problemas al remover elementos durante la iteración
+            List<AccionTransformacion> accionesTemp = new List<AccionTransformacion>(acciones);
 
-            foreach (var accion in acciones)
+            foreach (var accion in accionesTemp)
             {
+                // Solo aplicamos transformaciones a las acciones que aún no han terminado
                 if (tiempoTranscurrido <= accion.Duracion)
                 {
                     accion.AplicarTransformacion(tiempoTranscurrido);
                 }
+                else
+                {
+                    // Si la acción ha terminado, la eliminamos
+                    acciones.Remove(accion);
+                }
             }
 
-            // Remover las acciones completadas
-            acciones.RemoveAll(a => a.Duracion <= tiempoTranscurrido);
+            // Si no quedan acciones, reiniciamos o hacemos algo más
+            if (acciones.Count == 0)
+            {
+                // Aquí podríamos reiniciar o iniciar una nueva secuencia de animación
+                Console.WriteLine("Todas las acciones han terminado. Animación completa.");
+            }
         }
 
         public void Reiniciar()
@@ -139,6 +145,7 @@ namespace LetraU
         private string eje;
         private float anguloTotal;
         private float anguloAplicado = 0;
+        private float tiempoAcumulado = 0f;
 
         public AccionRotacionObjeto(Objeto objeto, string eje, float anguloTotal, float duracion)
             : base(duracion)
@@ -150,16 +157,26 @@ namespace LetraU
 
         public override void AplicarTransformacion(float tiempoRelativo)
         {
-            float anguloActual = anguloTotal * (tiempoRelativo / Duracion);
-            float deltaAngulo = anguloActual - anguloAplicado;
-            anguloAplicado = anguloActual;
+            if (tiempoRelativo <= 0)
+                return;
 
+            // La diferencia de tiempo desde la última actualización
+            float deltaFactor = (tiempoRelativo - tiempoAcumulado) / Duracion;
+
+            // Calculamos el incremento de ángulo proporcional al tiempo transcurrido
+            float deltaAngulo = anguloTotal * deltaFactor;
+
+            // Aplicamos el incremento de rotación según el eje
             if (eje == "x")
                 objeto.RotarIncremental(deltaAngulo, 0f, 0f);
             else if (eje == "y")
                 objeto.RotarIncremental(0f, deltaAngulo, 0f);
             else if (eje == "z")
                 objeto.RotarIncremental(0f, 0f, deltaAngulo);
+
+            // Actualizamos el tiempo acumulado y ángulo aplicado
+            tiempoAcumulado = tiempoRelativo;
+            anguloAplicado += deltaAngulo;
         }
     }
 

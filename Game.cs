@@ -13,7 +13,7 @@ namespace LetraU
         private Escenario escenario;
         private bool autoCreado = false;
         private Animacion animacionAuto;
-
+        private bool animacionIniciada = false;
 
         // Enumeraciones para los modos de edición
         enum ModoEdicion { Escenario, Objeto, Parte }
@@ -62,106 +62,93 @@ namespace LetraU
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
+            ConfigurarAnimacionAuto();
+        }
+
+        private void ConfigurarAnimacionAuto()
+        {
             // Posicionar el auto sobre la carretera
             if (escenario != null && escenario.listaDeObjetos.ContainsKey("auto"))
             {
                 Objeto auto = escenario.listaDeObjetos["auto"];
-                //animacionAuto.AgregarAccion(new AccionTraslacion(auto, new Vector3(6f, 4f, 0f), 1.5f));
-                // Posicionar el auto sobre la carretera
+
+                // Escalar el auto para que se vea proporcionado con respecto a la carretera
                 auto.Escalar(0.4f);
-                //auto.Trasladar(new OpenTK.Vector3(-3.0f, 0.3f, 0.0f)); // Y positivo para que el auto esté sobre la carretera
-                //auto.Trasladar(new OpenTK.Vector3(0.0f, 0.5f, 0.0f));
-               // auto.Trasladar(new OpenTK.Vector3(3.0f, 1.0f, -1.2f));
-                //auto.Rotar(new Vector3(0.0f, 45.0f, 0.0f)); // Girar 90 grados en el eje Y
-                //Console.WriteLine("Auto posicionado sobre la carretera.");
 
-                // Traslado del inicio a la curva
-                Vector3 inicio = new Vector3(-5.0f, 0.6f, 0.0f);
-                Vector3 curva = new Vector3(0.0f, 0.8f, 0.0f);
-                Vector3 movimiento1 = curva - inicio;
-                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 3.0f)); // 2 segundos
+                // Posición inicial del auto
+                Vector3 posicionInicial = new Vector3(-3.0f, 0.3f, 0.0f);
+                // Colocar el auto en su posición inicial antes de empezar la animación
+                auto.Trasladar(posicionInicial);
 
-                // Rotación en Y 45 grados
-                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 1.0f)); // 1 segundo
+                // Limpiamos cualquier animación anterior
+                animacionAuto.Reiniciar();
 
-                // Traslado desde la curva hasta el final
-                Vector3 final = new Vector3(3.0f, 2.0f, -0.2f);
-                Vector3 movimiento2 = final - curva;
-                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 3.0f)); // 2 segundos
+                // Primera trayectoria: Desde posición inicial hasta la curva
+                Vector3 posicionCurva = new Vector3(0.0f, 0.5f, 0.0f);
+                Vector3 movimiento1 = posicionCurva - posicionInicial;
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 2.0f));
 
-                // Configurar animación de rotación para las ruedas (si existen)
-                if (auto.listaDePartes.ContainsKey("rueda1"))
-                {
-                    try
-                    {
-                        Partes rueda1 = auto.getParte("rueda1");
+                // Rotación en la curva de 45 grados en Y
+                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 1.0f));
 
-                        // Verificar qué polígonos existen en la rueda
-                        Console.WriteLine("Polígonos en rueda1:");
-                        foreach (var poligonoKey in rueda1.listaDePoligonos.Keys)
-                        {
-                            Console.WriteLine($"- {poligonoKey}");
-                        }
+                // Segunda trayectoria: Desde la curva hasta el final
+                Vector3 posicionFinal = new Vector3(3.0f, 1.0f, -1.2f);
+                Vector3 movimiento2 = posicionFinal - posicionCurva;
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 2.0f));
 
-                        // Usar el primer polígono disponible para la animación
-                        if (rueda1.listaDePoligonos.Count > 0)
-                        {
-                            string primerPoligono = new List<string>(rueda1.listaDePoligonos.Keys)[0];
-                            AccionRotacion rotacionRueda1 = new AccionRotacion(
-                                rueda1.getPoligono(primerPoligono), "x", 2.0f);
-                            animacionAuto.AgregarAccion(rotacionRueda1);
-                            Console.WriteLine($"Animación de rotación configurada para rueda1 con polígono '{primerPoligono}'.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("La rueda1 no tiene polígonos para animar.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error al configurar la animación de rueda1: {ex.Message}");
-                    }
-                }
+                // Configurar animación de rotación para las ruedas
+                ConfigurarAnimacionRuedas(auto);
 
-                if (auto.listaDePartes.ContainsKey("rueda2"))
-                {
-                    try
-                    {
-                        Partes rueda2 = auto.getParte("rueda2");
-
-                        // Verificar qué polígonos existen en la rueda
-                        Console.WriteLine("Polígonos en rueda2:");
-                        foreach (var poligonoKey in rueda2.listaDePoligonos.Keys)
-                        {
-                            Console.WriteLine($"- {poligonoKey}");
-                        }
-
-                        // Usar el primer polígono disponible para la animación
-                        if (rueda2.listaDePoligonos.Count > 0)
-                        {
-                            string primerPoligono = new List<string>(rueda2.listaDePoligonos.Keys)[0];
-                            AccionRotacion rotacionRueda2 = new AccionRotacion(
-                                rueda2.getPoligono(primerPoligono), "x", 2.0f);
-                            animacionAuto.AgregarAccion(rotacionRueda2);
-                            Console.WriteLine($"Animación de rotación configurada para rueda2 con polígono '{primerPoligono}'.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("La rueda2 no tiene polígonos para animar.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error al configurar la animación de rueda2: {ex.Message}");
-                    }
-                }
+                animacionIniciada = true;
+                Console.WriteLine("Animación del auto configurada correctamente.");
             }
             else
             {
                 Console.WriteLine("No se encontró el objeto 'auto' para posicionar.");
             }
+        }
 
+        // Método auxiliar para configurar la animación de las ruedas
+        private void ConfigurarAnimacionRuedas(Objeto auto)
+        {
+            string[] ruedas = { "rueda1", "rueda2", "rueda3", "rueda4" };
 
+            foreach (string ruedaNombre in ruedas)
+            {
+                if (auto.listaDePartes.ContainsKey(ruedaNombre))
+                {
+                    try
+                    {
+                        Partes rueda = auto.getParte(ruedaNombre);
+
+                        // Verificar qué polígonos existen en la rueda
+                        Console.WriteLine($"Polígonos en {ruedaNombre}:");
+                        foreach (var poligonoKey in rueda.listaDePoligonos.Keys)
+                        {
+                            Console.WriteLine($"- {poligonoKey}");
+                        }
+
+                        // Usar el primer polígono disponible para la animación
+                        if (rueda.listaDePoligonos.Count > 0)
+                        {
+                            string primerPoligono = new List<string>(rueda.listaDePoligonos.Keys)[0];
+                            AccionRotacion rotacionRueda = new AccionRotacion(
+                                rueda.getPoligono(primerPoligono), "x", 5.0f); // Duración total de la animación
+
+                            animacionAuto.AgregarAccion(rotacionRueda);
+                            Console.WriteLine($"Animación de rotación configurada para {ruedaNombre} con polígono '{primerPoligono}'.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"La {ruedaNombre} no tiene polígonos para animar.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error al configurar la animación de {ruedaNombre}: {ex.Message}");
+                    }
+                }
+            }
         }
 
         protected override void OnResize(EventArgs e)
@@ -184,15 +171,26 @@ namespace LetraU
             try
             {
                 float deltaTime = (float)e.Time;
-                if (animacionAuto.EstaEjecutando())
+                if (animacionIniciada && animacionAuto.EstaEjecutando())
                 {
                     animacionAuto.Actualizar(deltaTime);
                 }
+                else if (animacionIniciada && !animacionAuto.EstaEjecutando())
+                {
+                    // Si la animación terminó, podemos reiniciarla o hacer otra cosa
+                    // Por ejemplo, reiniciar la animación después de un tiempo
+                    animacionIniciada = false;
+                    Console.WriteLine("Animación completada.");
 
+                    // Opcional: reiniciar la animación después de unos segundos
+                    // System.Threading.Thread.Sleep(2000);
+                    // ConfigurarAnimacionAuto();
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error en la animación: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 
