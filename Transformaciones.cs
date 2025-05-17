@@ -35,6 +35,11 @@ namespace LetraU
             this.Rotacion = new Vector3(x, y, z);
         }
 
+        public void RotarIncremental(float x, float y, float z)
+        {
+            this.Rotacion += new Vector3(x, y, z);
+        }
+
         public void Rotar(Vector3 rotacion)
         {
             this.Rotacion = rotacion;

@@ -131,5 +131,36 @@ namespace LetraU
             parte.RotarAlrededorCentroMasa(angulo);
         }
     }
-    // Puedes agregar más tipos de acciones según tus necesidades.
+
+
+    public class AccionRotacionObjeto : AccionTransformacion
+    {
+        private Objeto objeto;
+        private string eje;
+        private float anguloTotal;
+        private float anguloAplicado = 0;
+
+        public AccionRotacionObjeto(Objeto objeto, string eje, float anguloTotal, float duracion)
+            : base(duracion)
+        {
+            this.objeto = objeto;
+            this.eje = eje.ToLower();
+            this.anguloTotal = anguloTotal;
+        }
+
+        public override void AplicarTransformacion(float tiempoRelativo)
+        {
+            float anguloActual = anguloTotal * (tiempoRelativo / Duracion);
+            float deltaAngulo = anguloActual - anguloAplicado;
+            anguloAplicado = anguloActual;
+
+            if (eje == "x")
+                objeto.RotarIncremental(deltaAngulo, 0f, 0f);
+            else if (eje == "y")
+                objeto.RotarIncremental(0f, deltaAngulo, 0f);
+            else if (eje == "z")
+                objeto.RotarIncremental(0f, 0f, deltaAngulo);
+        }
+    }
+
 }

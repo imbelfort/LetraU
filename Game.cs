@@ -14,6 +14,7 @@ namespace LetraU
         private bool autoCreado = false;
         private Animacion animacionAuto;
 
+
         // Enumeraciones para los modos de edición
         enum ModoEdicion { Escenario, Objeto, Parte }
         enum TipoTransformacion { Traslacion, Rotacion, Escala }
@@ -65,18 +66,28 @@ namespace LetraU
             if (escenario != null && escenario.listaDeObjetos.ContainsKey("auto"))
             {
                 Objeto auto = escenario.listaDeObjetos["auto"];
-
+                //animacionAuto.AgregarAccion(new AccionTraslacion(auto, new Vector3(6f, 4f, 0f), 1.5f));
                 // Posicionar el auto sobre la carretera
-                // Ajustar estos valores según la posición exacta de tu carretera
-                auto.Trasladar(new OpenTK.Vector3(0.0f, 0.5f, 0.0f)); // Y positivo para que el auto esté sobre la carretera
-
-                // Opcional: Escalar el auto al tamaño apropiado
                 auto.Escalar(0.4f);
+                //auto.Trasladar(new OpenTK.Vector3(-3.0f, 0.3f, 0.0f)); // Y positivo para que el auto esté sobre la carretera
+                //auto.Trasladar(new OpenTK.Vector3(0.0f, 0.5f, 0.0f));
+               // auto.Trasladar(new OpenTK.Vector3(3.0f, 1.0f, -1.2f));
+                //auto.Rotar(new Vector3(0.0f, 45.0f, 0.0f)); // Girar 90 grados en el eje Y
+                //Console.WriteLine("Auto posicionado sobre la carretera.");
 
-                // Opcional: Rotar el auto para que mire hacia adelante (si es necesario)
-                auto.Rotar(new Vector3(0.0f, 45.0f, 0.0f)); // Girar 90 grados en el eje Y
+                // Traslado del inicio a la curva
+                Vector3 inicio = new Vector3(-5.0f, 0.6f, 0.0f);
+                Vector3 curva = new Vector3(0.0f, 0.8f, 0.0f);
+                Vector3 movimiento1 = curva - inicio;
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 3.0f)); // 2 segundos
 
-                Console.WriteLine("Auto posicionado sobre la carretera.");
+                // Rotación en Y 45 grados
+                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 1.0f)); // 1 segundo
+
+                // Traslado desde la curva hasta el final
+                Vector3 final = new Vector3(3.0f, 2.0f, -0.2f);
+                Vector3 movimiento2 = final - curva;
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 3.0f)); // 2 segundos
 
                 // Configurar animación de rotación para las ruedas (si existen)
                 if (auto.listaDePartes.ContainsKey("rueda1"))
@@ -149,6 +160,8 @@ namespace LetraU
             {
                 Console.WriteLine("No se encontró el objeto 'auto' para posicionar.");
             }
+
+
         }
 
         protected override void OnResize(EventArgs e)
@@ -170,10 +183,12 @@ namespace LetraU
             // Actualizar la animación
             try
             {
-                if (animacionAuto != null && animacionAuto.EstaEjecutando())
+                float deltaTime = (float)e.Time;
+                if (animacionAuto.EstaEjecutando())
                 {
-                    animacionAuto.Actualizar((float)e.Time);
+                    animacionAuto.Actualizar(deltaTime);
                 }
+
             }
             catch (Exception ex)
             {
