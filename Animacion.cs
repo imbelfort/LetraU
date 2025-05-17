@@ -34,22 +34,25 @@ namespace LetraU
 
             foreach (var accion in accionesTemp)
             {
-                // Solo aplicamos transformaciones a las acciones que aún no han terminado
-                if (tiempoTranscurrido <= accion.Duracion)
+                // Si la acción aún no ha terminado su tiempo de ejecución, la aplicamos
+                if (accion.TiempoEjecutado < accion.Duracion)
                 {
-                    accion.AplicarTransformacion(tiempoTranscurrido);
-                }
-                else
-                {
-                    // Si la acción ha terminado, la eliminamos
-                    acciones.Remove(accion);
+                    // Calculamos solo el tiempo delta para esta actualización
+                    float deltaEfectivo = Math.Min(deltaTime, accion.Duracion - accion.TiempoEjecutado);
+                    accion.AplicarTransformacion(deltaEfectivo);
+                    accion.TiempoEjecutado += deltaEfectivo;
+
+                    // Si después de actualizar, la acción ha completado su tiempo, la eliminamos
+                    if (accion.TiempoEjecutado >= accion.Duracion)
+                    {
+                        acciones.Remove(accion);
+                    }
                 }
             }
 
             // Si no quedan acciones, reiniciamos o hacemos algo más
             if (acciones.Count == 0)
             {
-                // Aquí podríamos reiniciar o iniciar una nueva secuencia de animación
                 Console.WriteLine("Todas las acciones han terminado. Animación completa.");
             }
         }
@@ -60,6 +63,7 @@ namespace LetraU
             acciones.Clear();
             tiempoTotal = 0;
         }
+
         public bool EstaEjecutando()
         {
             return acciones.Count > 0;
@@ -70,32 +74,46 @@ namespace LetraU
     public abstract class AccionTransformacion
     {
         public float Duracion { get; protected set; }
+        public float TiempoEjecutado { get; set; }
 
         public AccionTransformacion(float duracion)
         {
             Duracion = duracion;
+            TiempoEjecutado = 0;
         }
 
-        public abstract void AplicarTransformacion(float tiempoRelativo);
+        public abstract void AplicarTransformacion(float deltaTiempo);
     }
 
     public class AccionTraslacion : AccionTransformacion
     {
         private Vector3 vectorTraslacion;
         private Objeto objeto;
+        private Vector3 traslacionAcumulada;
 
         public AccionTraslacion(Objeto objeto, Vector3 vectorTraslacion, float duracion)
             : base(duracion)
         {
             this.objeto = objeto;
             this.vectorTraslacion = vectorTraslacion;
+            this.traslacionAcumulada = Vector3.Zero;
         }
 
-        public override void AplicarTransformacion(float tiempoRelativo)
+        public override void AplicarTransformacion(float deltaTiempo)
         {
-            float factor = tiempoRelativo / Duracion;
-            Vector3 traslacion = vectorTraslacion * factor;
-            objeto.Trasladar(traslacion);
+            // Calculamos qué proporción del vector total debe aplicarse en este paso
+            float proporcion = deltaTiempo / Duracion;
+
+            // Calculamos el vector de traslación incremental para este paso
+            Vector3 incremento = vectorTraslacion * proporcion;
+
+            // Acumulamos la traslación aplicada para seguimiento
+            traslacionAcumulada += incremento;
+
+            // Aplicamos el incremento a la posición actual del objeto
+            objeto.Trasladar(objeto.Posicion + incremento);
+
+            // Console.WriteLine($"Traslación aplicada: {incremento}, Total: {traslacionAcumulada}, Proporción: {TiempoEjecutado / Duracion * 100}%");
         }
     }
 
@@ -103,19 +121,32 @@ namespace LetraU
     {
         private Vector3 vectorTraslacion;
         private Objeto objeto;
+        private Vector3 traslacionAcumulada;
 
         public AccionTraslacionCaida(Objeto objeto, Vector3 vectorTraslacion, float duracion)
             : base(duracion)
         {
             this.objeto = objeto;
             this.vectorTraslacion = vectorTraslacion;
+            this.traslacionAcumulada = Vector3.Zero;
         }
 
-        public override void AplicarTransformacion(float tiempoRelativo)
+        public override void AplicarTransformacion(float deltaTiempo)
         {
-            float factor = tiempoRelativo / Duracion;
-            Vector3 traslacion = vectorTraslacion * factor;
-            objeto.Trasladar(traslacion);
+            // Calculamos qué proporción del vector total debe aplicarse en este paso
+            float proporcion = deltaTiempo / Duracion;
+
+            // Aplicamos una función cuadrática para simular aceleración de caída
+            float factorCaida = (TiempoEjecutado / Duracion) * (TiempoEjecutado / Duracion);
+
+            // Calculamos el vector de traslación incremental para este paso
+            Vector3 incremento = vectorTraslacion * proporcion * (1 + factorCaida);
+
+            // Acumulamos la traslación aplicada para seguimiento
+            traslacionAcumulada += incremento;
+
+            // Aplicamos el incremento a la posición actual del objeto
+            objeto.Trasladar(objeto.Posicion + incremento);
         }
     }
 
@@ -123,18 +154,28 @@ namespace LetraU
     {
         private string eje;
         private Poligono parte;
+        private float anguloTotal;
+        private float anguloAplicado;
 
         public AccionRotacion(Poligono objeto, string eje, float duracion)
             : base(duracion)
         {
             this.parte = objeto;
             this.eje = eje;
+            this.anguloTotal = 360f; // Rotación completa por defecto
+            this.anguloAplicado = 0f;
         }
 
-        public override void AplicarTransformacion(float tiempoRelativo)
+        public override void AplicarTransformacion(float deltaTiempo)
         {
-            float angulo = 360f * tiempoRelativo / Duracion;
-            parte.RotarAlrededorCentroMasa(angulo);
+            // Calculamos el incremento de ángulo proporcional al tiempo delta
+            float deltaAngulo = anguloTotal * (deltaTiempo / Duracion);
+
+            // Aplicamos la rotación
+            parte.RotarAlrededorCentroMasa(deltaAngulo);
+
+            // Acumulamos el ángulo aplicado
+            anguloAplicado += deltaAngulo;
         }
     }
 
@@ -145,7 +186,6 @@ namespace LetraU
         private string eje;
         private float anguloTotal;
         private float anguloAplicado = 0;
-        private float tiempoAcumulado = 0f;
 
         public AccionRotacionObjeto(Objeto objeto, string eje, float anguloTotal, float duracion)
             : base(duracion)
@@ -155,16 +195,10 @@ namespace LetraU
             this.anguloTotal = anguloTotal;
         }
 
-        public override void AplicarTransformacion(float tiempoRelativo)
+        public override void AplicarTransformacion(float deltaTiempo)
         {
-            if (tiempoRelativo <= 0)
-                return;
-
-            // La diferencia de tiempo desde la última actualización
-            float deltaFactor = (tiempoRelativo - tiempoAcumulado) / Duracion;
-
-            // Calculamos el incremento de ángulo proporcional al tiempo transcurrido
-            float deltaAngulo = anguloTotal * deltaFactor;
+            // Calculamos el incremento de ángulo proporcional al tiempo delta
+            float deltaAngulo = anguloTotal * (deltaTiempo / Duracion);
 
             // Aplicamos el incremento de rotación según el eje
             if (eje == "x")
@@ -174,10 +208,10 @@ namespace LetraU
             else if (eje == "z")
                 objeto.RotarIncremental(0f, 0f, deltaAngulo);
 
-            // Actualizamos el tiempo acumulado y ángulo aplicado
-            tiempoAcumulado = tiempoRelativo;
+            // Acumulamos el ángulo aplicado
             anguloAplicado += deltaAngulo;
+
+            // Console.WriteLine($"Rotación aplicada: {deltaAngulo}° en eje {eje}, Total: {anguloAplicado}°, Proporción: {TiempoEjecutado / Duracion * 100}%");
         }
     }
-
 }

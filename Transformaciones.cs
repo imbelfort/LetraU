@@ -9,7 +9,7 @@ namespace LetraU
 {
     public class Transformaciones
     {
-        public Vector3 Posicion { get; protected set; }
+        public Vector3 Posicion { get; set; } // Cambiado a set público para permitir acceso desde AccionTraslacion
         public Vector3 Rotacion { get; protected set; }
         public Vector3 Escala { get; protected set; }
 
@@ -28,6 +28,16 @@ namespace LetraU
         public void Trasladar(Vector3 posicion)
         {
             this.Posicion = posicion;
+        }
+
+        public void TrasladarIncremental(float x, float y, float z)
+        {
+            this.Posicion += new Vector3(x, y, z);
+        }
+
+        public void TrasladarIncremental(Vector3 incremento)
+        {
+            this.Posicion += incremento;
         }
 
         public void Rotar(float x, float y, float z)

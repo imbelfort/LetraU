@@ -75,13 +75,19 @@ namespace LetraU
                 // Escalar el auto para que se vea proporcionado con respecto a la carretera
                 auto.Escalar(0.4f);
 
-                // Posición inicial del auto
+                // IMPORTANTE: Reiniciar la posición del auto antes de configurar la animación
+                // para asegurarnos de que empiece desde el origen
+                auto.Trasladar(new Vector3(0, 0, 0));
+
+                // Posición inicial del auto (ahora la aplicamos como primera traslación en la animación)
                 Vector3 posicionInicial = new Vector3(-3.0f, 0.3f, 0.0f);
-                // Colocar el auto en su posición inicial antes de empezar la animación
-                auto.Trasladar(posicionInicial);
 
                 // Limpiamos cualquier animación anterior
                 animacionAuto.Reiniciar();
+
+                // Traslación inicial instantánea para colocar el auto en posición
+                // Nota: Usamos una duración muy pequeña para que sea casi instantánea
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, posicionInicial, 0.01f));
 
                 // Primera trayectoria: Desde posición inicial hasta la curva
                 Vector3 posicionCurva = new Vector3(0.0f, 0.5f, 0.0f);
@@ -182,9 +188,10 @@ namespace LetraU
                     animacionIniciada = false;
                     Console.WriteLine("Animación completada.");
 
-                    // Opcional: reiniciar la animación después de unos segundos
-                    // System.Threading.Thread.Sleep(2000);
-                    // ConfigurarAnimacionAuto();
+                    // Si quieres que la animación se reinicie automáticamente, descomenta estas líneas:
+                    // System.Threading.Thread.Sleep(2000); // Esperar 2 segundos
+                    // ConfigurarAnimacionAuto();            // Reiniciar animación
+                    // animacionIniciada = true;
                 }
             }
             catch (Exception ex)
