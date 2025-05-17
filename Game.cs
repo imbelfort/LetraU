@@ -26,6 +26,7 @@ namespace LetraU
 
         public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Auto sobre Carretera - 3D")
         {
+            this.WindowState = WindowState.Maximized;
             Console.WriteLine("Creando un nuevo escenario con auto y carretera...");
             try
             {
@@ -67,33 +68,34 @@ namespace LetraU
 
         private void ConfigurarAnimacionAuto()
         {
-            // Posicionar el auto sobre la carretera
             if (escenario != null && escenario.listaDeObjetos.ContainsKey("auto"))
             {
                 Objeto auto = escenario.listaDeObjetos["auto"];
+
                 auto.Escalar(0.4f);
-                auto.Trasladar(new Vector3(0, 0, 0));
+
                 animacionAuto.Reiniciar();
 
-                Vector3 posicionInicial = new Vector3(-4.0f, 0.2f, 0.0f);
+                Vector3 posicionInicial = new Vector3(-5.0f, 0.2f, 0.0f);
 
                 animacionAuto.AgregarAccion(new AccionTraslacion(auto, posicionInicial, 0.01f));
 
-                Vector3 posicionEsquina = new Vector3(1.5f, 0.3f, 0.0f);  
-                Vector3 movimiento1 = posicionEsquina - posicionInicial;
-                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 5.0f));
+                Vector3 puntoMedioCarretera = new Vector3(0.0f, 0.7f, -1.0f);
+                Vector3 movimiento1 = puntoMedioCarretera - posicionInicial;
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento1, 4.0f));
 
-                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 2.5f));
+                // Punto de rotación
+                animacionAuto.AgregarAccion(new AccionRotacionObjeto(auto, "y", 45f, 1.0f));
 
-                Vector3 posicionFinal = new Vector3(4.0f, 0.5f, -4.0f);
-                Vector3 movimiento2 = posicionFinal - posicionEsquina;
-
-                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 6.0f));
+                // Punto 2
+                Vector3 puntoFinalCarretera = new Vector3(4.0f, 0.7f, -4.0f);
+                Vector3 movimiento2 = puntoFinalCarretera - puntoMedioCarretera;
+                animacionAuto.AgregarAccion(new AccionTraslacion(auto, movimiento2, 4.0f));
 
                 ConfigurarAnimacionRuedas(auto);
 
                 animacionIniciada = true;
-                Console.WriteLine("Animación del auto configurada correctamente para carretera.");
+                Console.WriteLine("Animación del auto configurada correctamente.");
             }
             else
             {
