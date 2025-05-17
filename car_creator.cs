@@ -7,6 +7,18 @@ namespace LetraU
 {
     public class AutoCreator
     {
+
+        public static Escenario CrearAutoEscenarioConCarretera()
+        {
+            // Crear el escenario base
+            Escenario escenario = CrearAutoEscenario();
+
+            // Crear y agregar la carretera al escenario
+            Objeto carretera = Carretera.CrearCarretera();
+            escenario.addObjeto("carretera", carretera);
+
+            return escenario;
+        }
         public static Escenario CrearAutoEscenario()
         {
             // Crear un nuevo escenario
@@ -65,42 +77,91 @@ namespace LetraU
             ladoDerecho.addVertice(1.0f, 0.1f, 0.5f);   // Frente arriba
             chasis.add("ladoDerecho", ladoDerecho);
 
-            // Techo
+            // Techo (ahora en la parte superior de la cabina)
             Poligono techo = new Poligono(colorChasis);
-            techo.addVertice(-0.8f, 0.1f, 0.3f);  // Frente izquierdo
-            techo.addVertice(0.8f, 0.1f, 0.3f);   // Frente derecho
-            techo.addVertice(0.8f, 0.1f, -0.3f);  // Atrás derecho
-            techo.addVertice(-0.8f, 0.1f, -0.3f); // Atrás izquierdo
+            techo.addVertice(-0.6f, 0.5f, 0.3f);   // Frente izquierdo
+            techo.addVertice(0.6f, 0.5f, 0.3f);    // Frente derecho
+            techo.addVertice(0.6f, 0.5f, -0.3f);   // Atrás derecho
+            techo.addVertice(-0.6f, 0.5f, -0.3f);  // Atrás izquierdo
             chasis.add("techo", techo);
 
             // Parte superior del auto (cabina)
             Poligono cabina = new Poligono(colorChasis);
-            cabina.addVertice(-0.8f, 0.1f, 0.3f);   // Frente izquierdo
-            cabina.addVertice(0.8f, 0.1f, 0.3f);    // Frente derecho
-            cabina.addVertice(0.8f, 0.5f, 0.0f);    // Centro derecho
-            cabina.addVertice(-0.8f, 0.5f, 0.0f);   // Centro izquierdo
+            cabina.addVertice(-0.6f, 0.1f, 0.3f);   // Abajo izquierda
+            cabina.addVertice(0.6f, 0.1f, 0.3f);    // Abajo derecha
+            cabina.addVertice(0.6f, 0.5f, 0.3f);    // Arriba derecha
+            cabina.addVertice(-0.6f, 0.5f, 0.3f);   // Arriba izquierda
             chasis.add("cabina_frente", cabina);
 
             Poligono cabinaAtras = new Poligono(colorChasis);
-            cabinaAtras.addVertice(-0.8f, 0.1f, -0.3f);  // Atrás izquierdo
-            cabinaAtras.addVertice(0.8f, 0.1f, -0.3f);   // Atrás derecho
-            cabinaAtras.addVertice(0.8f, 0.5f, 0.0f);    // Centro derecho
-            cabinaAtras.addVertice(-0.8f, 0.5f, 0.0f);   // Centro izquierdo
+            cabinaAtras.addVertice(-0.6f, 0.1f, -0.3f);
+            cabinaAtras.addVertice(0.6f, 0.1f, -0.3f);
+            cabinaAtras.addVertice(0.6f, 0.5f, -0.3f);
+            cabinaAtras.addVertice(-0.6f, 0.5f, -0.3f);
             chasis.add("cabina_atras", cabinaAtras);
+
+            // Lado izquierdo cabina (vertical)
+            Poligono ladoIzquierdoCabina = new Poligono(colorChasis);
+            ladoIzquierdoCabina.addVertice(-0.6f, 0.1f, 0.3f);   // Abajo frente
+            ladoIzquierdoCabina.addVertice(-0.6f, 0.1f, -0.3f);  // Abajo atrás
+            ladoIzquierdoCabina.addVertice(-0.6f, 0.5f, -0.3f);  // Arriba atrás
+            ladoIzquierdoCabina.addVertice(-0.6f, 0.5f, 0.3f);   // Arriba frente
+            chasis.add("ladoIzquierdoCabina", ladoIzquierdoCabina);
+
+            // Lado derecho cabina (vertical)
+            Poligono ladoDerechoCabina = new Poligono(colorChasis);
+            ladoDerechoCabina.addVertice(0.6f, 0.1f, 0.3f);   // Abajo frente
+            ladoDerechoCabina.addVertice(0.6f, 0.1f, -0.3f);  // Abajo atrás
+            ladoDerechoCabina.addVertice(0.6f, 0.5f, -0.3f);  // Arriba atrás
+            ladoDerechoCabina.addVertice(0.6f, 0.5f, 0.3f);   // Arriba frente
+            chasis.add("ladoDerechoCabina", ladoDerechoCabina);
+
+            // Lado izquierdo chasis (cerrar volumen entre base y techo)
+            Poligono ladoIzquierdoChasisVolumen = new Poligono(colorChasis);
+            ladoIzquierdoChasisVolumen.addVertice(-1.0f, -0.3f, 0.5f);   // Base frente abajo
+            ladoIzquierdoChasisVolumen.addVertice(-1.0f, -0.3f, -0.5f);  // Base atrás abajo
+            ladoIzquierdoChasisVolumen.addVertice(-0.6f, 0.5f, -0.3f);   // Techo atrás arriba
+            ladoIzquierdoChasisVolumen.addVertice(-0.6f, 0.5f, 0.3f);    // Techo frente arriba
+            chasis.add("ladoIzquierdoChasisVolumen", ladoIzquierdoChasisVolumen);
+
+            // Lado derecho chasis (cerrar volumen)
+            Poligono ladoDerechoChasisVolumen = new Poligono(colorChasis);
+            ladoDerechoChasisVolumen.addVertice(1.0f, -0.3f, 0.5f);
+            ladoDerechoChasisVolumen.addVertice(1.0f, -0.3f, -0.5f);
+            ladoDerechoChasisVolumen.addVertice(0.6f, 0.5f, -0.3f);
+            ladoDerechoChasisVolumen.addVertice(0.6f, 0.5f, 0.3f);
+            chasis.add("ladoDerechoChasisVolumen", ladoDerechoChasisVolumen);
+
+            // Frente del chasis (cerrar volumen vertical)
+            Poligono frenteVolumen = new Poligono(colorChasis);
+            frenteVolumen.addVertice(-1.0f, -0.3f, 0.5f);
+            frenteVolumen.addVertice(1.0f, -0.3f, 0.5f);
+            frenteVolumen.addVertice(0.6f, 0.5f, 0.3f);
+            frenteVolumen.addVertice(-0.6f, 0.5f, 0.3f);
+            chasis.add("frenteVolumen", frenteVolumen);
+
+            // Atrás del chasis (cerrar volumen vertical)
+            Poligono atrasVolumen = new Poligono(colorChasis);
+            atrasVolumen.addVertice(-1.0f, -0.3f, -0.5f);
+            atrasVolumen.addVertice(1.0f, -0.3f, -0.5f);
+            atrasVolumen.addVertice(0.6f, 0.5f, -0.3f);
+            atrasVolumen.addVertice(-0.6f, 0.5f, -0.3f);
+            chasis.add("atrasVolumen", atrasVolumen);
 
             // Ventanas
             Poligono ventanaFrente = new Poligono(colorVentanas);
-            ventanaFrente.addVertice(-0.7f, 0.15f, 0.25f);    // Abajo izquierdo
-            ventanaFrente.addVertice(0.7f, 0.15f, 0.25f);     // Abajo derecho
-            ventanaFrente.addVertice(0.7f, 0.45f, 0.05f);    // Arriba derecho
-            ventanaFrente.addVertice(-0.7f, 0.45f, 0.05f);   // Arriba izquierdo
+            ventanaFrente.addVertice(-0.55f, 0.12f, 0.31f);   // Abajo izquierdo
+            ventanaFrente.addVertice(0.55f, 0.12f, 0.31f);    // Abajo derecho
+            ventanaFrente.addVertice(0.55f, 0.48f, 0.29f);    // Arriba derecho (un poco atrás en Z para simular inclinación)
+            ventanaFrente.addVertice(-0.55f, 0.48f, 0.29f);   // Arriba izquierdo
+
             chasis.add("ventana_frente", ventanaFrente);
 
             Poligono ventanaAtras = new Poligono(colorVentanas);
-            ventanaAtras.addVertice(-0.7f, 0.15f, -0.25f);   // Abajo izquierdo
-            ventanaAtras.addVertice(0.7f, 0.15f, -0.25f);    // Abajo derecho
-            ventanaAtras.addVertice(0.7f, 0.45f, -0.05f);    // Arriba derecho
-            ventanaAtras.addVertice(-0.7f, 0.45f, -0.05f);   // Arriba izquierdo
+            ventanaAtras.addVertice(-0.55f, 0.12f, -0.29f);
+            ventanaAtras.addVertice(0.55f, 0.12f, -0.29f);
+            ventanaAtras.addVertice(0.55f, 0.48f, -0.31f);
+            ventanaAtras.addVertice(-0.55f, 0.48f, -0.31f);
             chasis.add("ventana_atras", ventanaAtras);
 
             // Añadir el chasis al auto

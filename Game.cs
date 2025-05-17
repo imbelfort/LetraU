@@ -1,153 +1,162 @@
 ﻿using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace LetraU
 {
     public class Game : GameWindow
     {
         private Escenario escenario;
-        private Animacion animacion;
         private bool autoCreado = false;
+        private Animacion animacionAuto;
 
         // Enumeraciones para los modos de edición
-        enum ModoEdicion
-        {
-            Escenario,
-            Objeto,
-            Parte
-        }
-        enum TipoTransformacion
-        {
-            Traslacion,
-            Rotacion,
-            Escala
-        }
-        // Variables de control
+        enum ModoEdicion { Escenario, Objeto, Parte }
+        enum TipoTransformacion { Traslacion, Rotacion, Escala }
+
         private ModoEdicion modoActual = ModoEdicion.Objeto;
         private TipoTransformacion transformacionActual = TipoTransformacion.Traslacion;
         private string objetoSeleccionado = "auto";
         private string parteSeleccionada = "rueda1";
-        private float velocidadTransformacion = 0.01f;
-        private float velocidadRotacion = 1.0f;
-        private float velocidadEscala = 0.01f;
-        private bool animacionActiva = true;
-        private bool autoEnMovimiento = true;
-        private float distanciaRecorrida = 0f;
-        private const float DISTANCIA_MAXIMA = 3.0f;
 
-        public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Auto Animado - 3D")
+        public Game(int width, int height) : base(width, height, GraphicsMode.Default, "Auto sobre Carretera - 3D")
         {
-            // Crear un nuevo auto primero
-            Console.WriteLine("Creando un nuevo auto...");
-            escenario = AutoCreator.CrearAutoEscenario();
-
-            // Guardar el escenario para futuras ejecuciones
+            Console.WriteLine("Creando un nuevo escenario con auto y carretera...");
             try
             {
-                AutoCreator.GuardarEscenario(escenario, "auto.json");
-                Console.WriteLine("Auto creado y guardado en auto.json");
+                escenario = AutoCreator.CrearAutoEscenarioConCarretera();
+                autoCreado = true;
+                Console.WriteLine("Escenario con auto y carretera creado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al crear escenario: {ex.Message}");
+                escenario = AutoCreator.CrearAutoEscenario();
                 autoCreado = true;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al guardar auto.json: {ex.Message}");
-            }
 
             try
             {
-                // Si quieres cargar desde el archivo recién creado (opcional)
-                // escenario = Serializador.DeserializarObjeto<Escenario>("auto.json");
-                // if (escenario != null)
-                // {
-                //    Console.WriteLine("Auto cargado correctamente desde auto.json");
-                //    autoCreado = true;
-                // }
+                AutoCreator.GuardarEscenario(escenario, "auto_con_carretera.json");
+                Console.WriteLine("Escenario guardado en auto_con_carretera.json");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al cargar auto.json: {ex.Message}");
+                Console.WriteLine($"Error al guardar escenario: {ex.Message}");
             }
 
             // Inicializar la animación
-            animacion = new Animacion();
-
-            // Aplicar transformaciones iniciales al auto
-            if (autoCreado && escenario.listaDeObjetos.ContainsKey("auto"))
-            {
-                Objeto auto = escenario.getObjeto("auto");
-                auto.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
-                auto.Escalar(0.8f);
-            }
+            animacionAuto = new Animacion();
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            GL.ClearColor(0.0f, 0.5f, 0.0f, 1.0f);
+            GL.ClearColor(0.5f, 0.7f, 1.0f, 1.0f); // Cielo
             GL.Enable(EnableCap.DepthTest);
-
-            // Habilitar transparencia para las ventanas del auto
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            // Solo iniciar la animación si el escenario y el auto existen
-            if (escenario != null && autoCreado)
+            // Posicionar el auto sobre la carretera
+            if (escenario != null && escenario.listaDeObjetos.ContainsKey("auto"))
             {
-                IniciarAnimacionRuedas();
-            }
-            else
-            {
-                Console.WriteLine("Advertencia: No se puede iniciar la animación. El escenario o el auto no están disponibles.");
-            }
-        }
+                Objeto auto = escenario.listaDeObjetos["auto"];
 
-        private void IniciarAnimacionRuedas()
-        {
-            if (!autoCreado || escenario == null) return;
+                // Posicionar el auto sobre la carretera
+                // Ajustar estos valores según la posición exacta de tu carretera
+                auto.Trasladar(new OpenTK.Vector3(0.0f, 0.5f, 0.0f)); // Y positivo para que el auto esté sobre la carretera
 
-            try
-            {
-                Objeto auto = escenario.getObjeto("auto");
+                // Opcional: Escalar el auto al tamaño apropiado
+                auto.Escalar(0.4f);
 
-                // Agregar animación de traslación para el auto completo
-                AccionTraslacion accionTraslacionDerecha = new AccionTraslacion(
-                    auto, new Vector3(0.01f, 0, 0), duracion: 5f);
-                animacion.AgregarAccion(accionTraslacionDerecha);
+                // Opcional: Rotar el auto para que mire hacia adelante (si es necesario)
+                auto.Rotar(new Vector3(0.0f, 45.0f, 0.0f)); // Girar 90 grados en el eje Y
 
-                // Verificar que las ruedas existen antes de animar
-                string[] ruedas = { "rueda1", "rueda2", "rueda3", "rueda4" };
-                foreach (string rueda in ruedas)
+                Console.WriteLine("Auto posicionado sobre la carretera.");
+
+                // Configurar animación de rotación para las ruedas (si existen)
+                if (auto.listaDePartes.ContainsKey("rueda1"))
                 {
-                    if (auto.listaDePartes.ContainsKey(rueda) &&
-                        auto.getParte(rueda).listaDePoligonos.ContainsKey(rueda))
+                    try
                     {
-                        AccionRotacion accionRotacionRueda = new AccionRotacion(
-                            auto.getParte(rueda).getPoligono(rueda), "z", 5);
-                        animacion.AgregarAccion(accionRotacionRueda);
+                        Partes rueda1 = auto.getParte("rueda1");
+
+                        // Verificar qué polígonos existen en la rueda
+                        Console.WriteLine("Polígonos en rueda1:");
+                        foreach (var poligonoKey in rueda1.listaDePoligonos.Keys)
+                        {
+                            Console.WriteLine($"- {poligonoKey}");
+                        }
+
+                        // Usar el primer polígono disponible para la animación
+                        if (rueda1.listaDePoligonos.Count > 0)
+                        {
+                            string primerPoligono = new List<string>(rueda1.listaDePoligonos.Keys)[0];
+                            AccionRotacion rotacionRueda1 = new AccionRotacion(
+                                rueda1.getPoligono(primerPoligono), "x", 2.0f);
+                            animacionAuto.AgregarAccion(rotacionRueda1);
+                            Console.WriteLine($"Animación de rotación configurada para rueda1 con polígono '{primerPoligono}'.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("La rueda1 no tiene polígonos para animar.");
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"Advertencia: La rueda {rueda} no existe en el auto");
+                        Console.WriteLine($"Error al configurar la animación de rueda1: {ex.Message}");
+                    }
+                }
+
+                if (auto.listaDePartes.ContainsKey("rueda2"))
+                {
+                    try
+                    {
+                        Partes rueda2 = auto.getParte("rueda2");
+
+                        // Verificar qué polígonos existen en la rueda
+                        Console.WriteLine("Polígonos en rueda2:");
+                        foreach (var poligonoKey in rueda2.listaDePoligonos.Keys)
+                        {
+                            Console.WriteLine($"- {poligonoKey}");
+                        }
+
+                        // Usar el primer polígono disponible para la animación
+                        if (rueda2.listaDePoligonos.Count > 0)
+                        {
+                            string primerPoligono = new List<string>(rueda2.listaDePoligonos.Keys)[0];
+                            AccionRotacion rotacionRueda2 = new AccionRotacion(
+                                rueda2.getPoligono(primerPoligono), "x", 2.0f);
+                            animacionAuto.AgregarAccion(rotacionRueda2);
+                            Console.WriteLine($"Animación de rotación configurada para rueda2 con polígono '{primerPoligono}'.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("La rueda2 no tiene polígonos para animar.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error al configurar la animación de rueda2: {ex.Message}");
                     }
                 }
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"Error al iniciar animación de ruedas: {ex.Message}");
+                Console.WriteLine("No se encontró el objeto 'auto' para posicionar.");
             }
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-
             GL.Viewport(0, 0, Width, Height);
             float aspectRatio = (float)Width / Height;
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
-                MathHelper.DegreesToRadians(45.0f), aspectRatio, 0.1f, 100.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), aspectRatio, 0.1f, 100.0f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
             GL.MatrixMode(MatrixMode.Modelview);
@@ -158,115 +167,17 @@ namespace LetraU
         {
             base.OnUpdateFrame(e);
 
-            if (animacionActiva && escenario != null)
-            {
-                // Actualizar la animación
-                animacion.Actualizar((float)e.Time);
-            }
-
-            // Manejar entrada del teclado
-            var keyboard = Keyboard.GetState();
-
-            // Toggle animación con tecla A
-            if (keyboard.IsKeyDown(Key.A) && !prevKeyboard.IsKeyDown(Key.A))
-            {
-                animacionActiva = !animacionActiva;
-                Console.WriteLine($"Animación: {(animacionActiva ? "Activada" : "Desactivada")}");
-            }
-
-            // Reset posición con tecla R
-            if (keyboard.IsKeyDown(Key.R) && !prevKeyboard.IsKeyDown(Key.R))
-            {
-                ReiniciarPosicionAuto();
-            }
-
-            // Control manual del auto con flechas
-            if (!animacionActiva && autoCreado && escenario != null)
-            {
-                try
-                {
-                    Objeto auto = escenario.getObjeto("auto");
-                    Vector3 nuevaPosicion = auto.Posicion;
-
-                    if (keyboard.IsKeyDown(Key.Right))
-                    {
-                        nuevaPosicion.X += velocidadTransformacion * 3;
-                        RotarRuedas(5);
-                    }
-                    if (keyboard.IsKeyDown(Key.Left))
-                    {
-                        nuevaPosicion.X -= velocidadTransformacion * 3;
-                        RotarRuedas(-5);
-                    }
-                    if (keyboard.IsKeyDown(Key.Up))
-                    {
-                        nuevaPosicion.Z += velocidadTransformacion * 3;
-                        RotarRuedas(5);
-                    }
-                    if (keyboard.IsKeyDown(Key.Down))
-                    {
-                        nuevaPosicion.Z -= velocidadTransformacion * 3;
-                        RotarRuedas(5);
-                    }
-
-                    auto.Trasladar(nuevaPosicion);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error en control manual: {ex.Message}");
-                }
-            }
-
-            prevKeyboard = keyboard;
-        }
-
-        private KeyboardState prevKeyboard;
-
-        private void RotarRuedas(float angulo)
-        {
-            if (!autoCreado || escenario == null) return;
-
+            // Actualizar la animación
             try
             {
-                Objeto auto = escenario.getObjeto("auto");
-                string[] ruedas = { "rueda1", "rueda2", "rueda3", "rueda4" };
-
-                foreach (string rueda in ruedas)
+                if (animacionAuto != null && animacionAuto.EstaEjecutando())
                 {
-                    if (auto.listaDePartes.ContainsKey(rueda) &&
-                        auto.getParte(rueda).listaDePoligonos.ContainsKey(rueda))
-                    {
-                        auto.getParte(rueda).getPoligono(rueda).RotarAlrededorCentroMasa(angulo);
-                    }
+                    animacionAuto.Actualizar((float)e.Time);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al rotar ruedas: {ex.Message}");
-            }
-        }
-
-        private void ReiniciarPosicionAuto()
-        {
-            if (!autoCreado || escenario == null) return;
-
-            try
-            {
-                Objeto auto = escenario.getObjeto("auto");
-                auto.Trasladar(new Vector3(-1.5f, 0.0f, 0.0f));
-                auto.Escalar(0.8f);
-                auto.Rotar(new Vector3(0, 0, 0));
-
-                distanciaRecorrida = 0f;
-                autoEnMovimiento = true;
-
-                // Reiniciar animación
-                animacion.Reiniciar();
-                IniciarAnimacionRuedas();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al reiniciar posición: {ex.Message}");
+                Console.WriteLine($"Error en la animación: {ex.Message}");
             }
         }
 
@@ -275,22 +186,19 @@ namespace LetraU
             base.OnRenderFrame(e);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            // Configura la cámara
+            // Cámara - ajustada para ver mejor el auto sobre la carretera
             Matrix4 modelview = Matrix4.LookAt(
-                new Vector3(0.0f, 1.0f, 4.5f), // Posición de la cámara
-                new Vector3(0.0f, 0.1f, 0.0f), // Punto de mira
-                Vector3.UnitY); // Vector arriba
+                new Vector3(2.0f, 2.0f, 5.0f),  // Posición de la cámara
+                new Vector3(0.0f, 0.5f, 0.0f),  // Punto al que mira
+                Vector3.UnitY);                 // Vector "arriba"
             GL.LoadMatrix(ref modelview);
 
-            // Renderizar estado actual
             string modoText = $"Modo: {modoActual}, Transformación: {transformacionActual}, Objeto: {objetoSeleccionado}";
             if (modoActual == ModoEdicion.Parte)
                 modoText += $", Parte: {parteSeleccionada}";
 
-            // Sería ideal mostrar este texto en pantalla, pero eso requeriría una biblioteca de texto
             Console.WriteLine(modoText);
 
-            // Dibujar escenario con las transformaciones aplicadas
             if (escenario != null)
             {
                 escenario.dibujar(new Vector3(0, 0, 0));
@@ -298,42 +206,6 @@ namespace LetraU
             else
             {
                 Console.WriteLine("Error: El escenario es nulo. No se puede dibujar.");
-            }
-
-            // Si no hay animación activa o se terminó, iniciar una nueva
-            if (autoCreado && escenario != null && !animacion.EstaEjecutando() && animacionActiva)
-            {
-                if (autoEnMovimiento)
-                {
-                    try
-                    {
-                        Objeto auto = escenario.getObjeto("auto");
-                        distanciaRecorrida += 0.01f;
-
-                        // Si llega al límite derecho, iniciar animación de caída
-                        if (distanciaRecorrida >= DISTANCIA_MAXIMA)
-                        {
-                            AccionTraslacionCaida caida = new AccionTraslacionCaida(
-                                auto, new Vector3(0, -0.02f, 0), 7);
-                            animacion.AgregarAccion(caida);
-                            autoEnMovimiento = false;
-                        }
-                        else
-                        {
-                            // Continuar movimiento normal
-                            IniciarAnimacionRuedas();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error en animación: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    // Después de la caída, reiniciar la posición
-                    ReiniciarPosicionAuto();
-                }
             }
 
             SwapBuffers();
