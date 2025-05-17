@@ -105,6 +105,34 @@ namespace LetraU
                 fondo.addVertice(b3.X, b3.Y, b3.Z);
                 fondo.addVertice(b4.X, b4.Y, b4.Z);
                 parteCarretera.add("fondo" + i, fondo);
+
+                // Línea central blanca
+                Color4 colorLinea = Color4.White;
+                float anchoLinea = 0.05f; // grosor de la línea central
+
+                Vector3 centroIni = (a1 + a2) / 2f;
+                Vector3 centroFin = (a3 + a4) / 2f;
+
+                Vector3 dirLinea = centroFin - centroIni;
+                if (dirLinea.LengthSquared > 0)
+                    dirLinea.Normalize();
+                else
+                    dirLinea = Vector3.UnitZ;
+
+                Vector3 perpLinea = Vector3.Cross(dirLinea, Vector3.UnitY) * (anchoLinea / 2f);
+
+                Vector3 l1 = centroIni + perpLinea;
+                Vector3 l2 = centroIni - perpLinea;
+                Vector3 l3 = centroFin - perpLinea;
+                Vector3 l4 = centroFin + perpLinea;
+
+                Poligono lineaCentral = new Poligono(colorLinea);
+                lineaCentral.addVertice(l1.X, l1.Y + 0.001f, l1.Z);
+                lineaCentral.addVertice(l2.X, l2.Y + 0.001f, l2.Z);
+                lineaCentral.addVertice(l3.X, l3.Y + 0.001f, l3.Z);
+                lineaCentral.addVertice(l4.X, l4.Y + 0.001f, l4.Z);
+                parteCarretera.add("lineaCentral" + i, lineaCentral);
+
             }
 
             carretera.addParte("baseCarretera", parteCarretera);
@@ -112,4 +140,3 @@ namespace LetraU
         }
     }
 }
-
